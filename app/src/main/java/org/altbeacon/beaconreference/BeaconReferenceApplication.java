@@ -15,6 +15,8 @@ import android.os.Build;
 import android.util.Log;
 
 import org.altbeacon.beacon.BeaconManager;
+import org.altbeacon.beacon.BeaconParser;
+import org.altbeacon.beacon.Identifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.powersave.BackgroundPowerSaver;
 import org.altbeacon.beacon.startup.RegionBootstrap;
@@ -41,11 +43,11 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         // layout expression for other beacon types, do a web search for "setBeaconLayout"
         // including the quotes.
         //
-        //beaconManager.getBeaconParsers().clear();
-        //beaconManager.getBeaconParsers().add(new BeaconParser().
-        //        setBeaconLayout("m:2-3=beac,i:4-19,i:20-21,i:22-23,p:24-24,d:25-25"));
+        beaconManager.getBeaconParsers().clear();
+        beaconManager.getBeaconParsers().add(new BeaconParser().
+                setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));
 
-        beaconManager.setDebug(true);
+        BeaconManager.setDebug(true);
 
 
         // Uncomment the code below to use a foreground service to scan for beacons. This unlocks
@@ -54,45 +56,48 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         // communicate to users that your app is using resources in the background.
         //
 
-        /*
-        Notification.Builder builder = new Notification.Builder(this);
-        builder.setSmallIcon(R.drawable.ic_launcher);
-        builder.setContentTitle("Scanning for Beacons");
-        Intent intent = new Intent(this, MonitoringActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
-        );
-        builder.setContentIntent(pendingIntent);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel("My Notification Channel ID",
-                    "My Notification Name", NotificationManager.IMPORTANCE_DEFAULT);
-            channel.setDescription("My Notification Channel Description");
-            NotificationManager notificationManager = (NotificationManager) getSystemService(
-                    Context.NOTIFICATION_SERVICE);
-            notificationManager.createNotificationChannel(channel);
-            builder.setChannelId(channel.getId());
-        }
-        beaconManager.enableForegroundServiceScanning(builder.build(), 456);
+
+//        Notification.Builder builder = new Notification.Builder(this);
+//        builder.setSmallIcon(R.drawable.ic_launcher);
+//        builder.setContentTitle("Scanning for Beacons");
+//        Intent intent = new Intent(this, MonitoringActivity.class);
+//        PendingIntent pendingIntent = PendingIntent.getActivity(
+//                this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT
+//        );
+//        builder.setContentIntent(pendingIntent);
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            NotificationChannel channel = new NotificationChannel("My Notification Channel ID",
+//                    "My Notification Name", NotificationManager.IMPORTANCE_DEFAULT);
+//            channel.setDescription("My Notification Channel Description");
+//            NotificationManager notificationManager = (NotificationManager) getSystemService(
+//                    Context.NOTIFICATION_SERVICE);
+//            notificationManager.createNotificationChannel(channel);
+//            builder.setChannelId(channel.getId());
+//        }
+//        beaconManager.enableForegroundServiceScanning(builder.build(), 456);
+//
+
 
         // For the above foreground scanning service to be useful, you need to disable
         // JobScheduler-based scans (used on Android 8+) and set a fast background scan
         // cycle that would otherwise be disallowed by the operating system.
         //
-        beaconManager.setEnableScheduledScanJobs(false);
+//        beaconManager.setEnableScheduledScanJobs(false);
         beaconManager.setBackgroundBetweenScanPeriod(0);
         beaconManager.setBackgroundScanPeriod(1100);
-        */
+
 
         Log.d(TAG, "setting up background monitoring for beacons and power saving");
         // wake up the app when a beacon is seen
         Region region = new Region("backgroundRegion",
-                null, null, null);
+                Identifier.parse("12345678-1234-1234-1234-123456789012"), null, null);
+        //beaconManager.setBackgroundMode(true);
         regionBootstrap = new RegionBootstrap(this, region);
 
         // simply constructing this class and holding a reference to it in your custom Application
         // class will automatically cause the BeaconLibrary to save battery whenever the application
         // is not visible.  This reduces bluetooth power usage by about 60%
-        backgroundPowerSaver = new BackgroundPowerSaver(this);
+        //backgroundPowerSaver = new BackgroundPowerSaver(this);
 
         // If you wish to test beacon detection in the Android Emulator, you can use code like this:
         // BeaconManager.setBeaconSimulator(new TimedBeaconSimulator() );
@@ -107,13 +112,13 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
     }
     public void enableMonitoring() {
         Region region = new Region("backgroundRegion",
-                null, null, null);
+                Identifier.parse("12345678-1234-1234-1234-123456789012"), null, null);
         regionBootstrap = new RegionBootstrap(this, region);
     }
 
 
     @Override
-    public void didEnterRegion(Region arg0) {
+    public void didEnterRegion(Region region) {
         Log.d(TAG, "did enter region.");
         // Send a notification to the user whenever a Beacon
         // matching a Region (defined above) are first seen.
@@ -165,7 +170,7 @@ public class BeaconReferenceApplication extends Application implements Bootstrap
         builder.setContentTitle("I detect a beacon");
         builder.setContentText("Tap here to see details in the reference app");
         builder.setContentIntent(resultPendingIntent);
-        notificationManager.notify(1, builder.build());
+        notificationManager.notify(3, builder.build());
     }
 
     public void setMonitoringActivity(MonitoringActivity activity) {
